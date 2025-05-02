@@ -51,7 +51,8 @@ for(i in 1:10000){
 for(i in 1:10000){
   farther.resampled.p[i] = length(which(farther.resamples.shifted <= farther.resampled.t[i]))/length(farther.resamples.shifted)
 }
-#ALL 0
+mean(farther.resampled.p)
+
 
 
 (farther.quantile = quantile(farther.resamples.shifted, 0.05)) #-1.710882
@@ -80,6 +81,7 @@ for(i in 1:10000){
 for(i in 1:10000){
   closer.resampled.p[i] = length(which(closer.resamples.shifted >= closer.resampled.t[i]))/length(closer.resamples.shifted)
 }
+mean(closer.resampled.p)
 #ALL 0
 
 
@@ -107,11 +109,12 @@ for(i in 1:10000){
 for(i in 1:10000){
   dif.resampled.p[i] = length(which(dif.resamples.shifted >= abs(dif.resampled.t[i]) | dif.resamples.shifted <= -abs(dif.resampled.t[i])))/length(dif.resamples.shifted)
 }
+mean(dif.resampled.p)
 #ALL 0
 
 
 (dif.quantile = quantile(dif.resamples.shifted, c(0.025,0.975))) #-1.890905  1.917840 
-quantile(dif.resampled.mean, c(0.025,0.975)) #-9.778089 -5.970878
+quantile(dif.resampled.mean, c(0.025,0.975)) #0.2814377 0.4427011
 
 
 
@@ -200,7 +203,7 @@ for(i in 1:10000){
 delta = abs(mean(data$closer))
 low = -delta
 high = delta
-mean(closer.xbars >= high) #PVAL
+mean(closer.xbars >= high) 
 
 mu0.iterate = 0.001
 mu0 = mean(data$closer)
@@ -273,7 +276,7 @@ low = -delta
 high = delta
 mean(dif.xbars >= high) + mean(dif.xbars <= low) #PVAL
 
-dif.xbars = c()
+
 mu0.iterate = 0.001
 mu0 = mean(data$difference)
 ci.data <- data$difference

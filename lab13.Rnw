@@ -16,6 +16,8 @@
 \begin{document}
 <<echo=F, message=F, warning=F>>=
 library(tidyverse)
+library(e1071)
+data = read_csv("data.csv")
 @
 
 \begin{enumerate}
@@ -37,10 +39,48 @@ for the the further observations.
   where $f_Z(\cdot)$ and $F_Z(\cdot)$ are the Gaussian PDF and CDF and skew is the
   skewness of the data. What is the potential error in the computation of the 
   $p$-value when testing $H_0: \mu_X=0; H_a: \mu_X<0$ using the zebra finch further data? 
+  <<size = 'scriptsize'>>=
+skewn = skewness(data$farther)
+
+tstat = t.test(data$farther,alternative = "less")[["statistic"]][["t"]]
+
+pdf = dnorm(tstat)
+
+(error = (pdf)*(1/5)*skewn*(2*(tstat)^2 + 1)*(1/6))
+@
+
+
+\[ Error = 520.8876\]
+
 
   \item Compute the error for $t$ statistics from -10 to 10 and plot a line
   that shows the error across $t$. Continue to use the skewness and 
   the sample size for the zebra finch further data.
+\begin{figure}[ht]
+\begin{center}
+<<errorgraph, fig.height=3.4, fig.width=3.4, echo=FALSE>>=
+library(tidyverse)
+library(e1071)
+
+skewn = skewness(data$farther)
+
+errorgraph <- tibble(
+  t = seq(-10, 10, length.out = 1000),
+  error = dnorm(t) * (1/5) * skewn * (2 * t^2 + 1) * (1/6)
+)
+
+ggplot(errorgraph) +
+  geom_line(aes(x = t, y = error)) +
+  theme_minimal() +
+  xlab("T-Statistic") +
+  ylab("Error")
+@
+\caption{Error Graph Based on $t$}
+\label{fig:errorgraph}
+\end{center}
+\end{figure}
+
+
 
   \item Suppose we wanted to have a tail probability within 10\% of the desired
   $\alpha=0.05$. Recall we did a left-tailed test using the further data.
@@ -50,6 +90,12 @@ for the the further observations.
   which yields
   \[ n = \left(\frac{\text{skew}}{6(0.10\alpha)} (2t^2 + 1) f_Z(t)\right)^2.\]
 \end{enumerate}
+<<size='scriptsize'>>=
+alpha = 0.05
+
+(size = ((skewness(data$farther)/(6*0.1*alpha))*(2*qnorm(alpha)^2 + 1)*dnorm(qnorm(alpha)))^2)
+@
+\[ n = 520.8876\]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Question 3
@@ -68,12 +114,99 @@ sampling distribution of the $T$ statistic:
   resamples shifted to ensure they are consistent with the null hypotheses at the average 
   (i.e., here ensure the shifted resamples are 0 on average, corresponding
   to $t=0$, for each case). 
+  <<size='scriptsize'>>=
+#FARTHER
+farther.resampled.t = c()
+farther.resamples.shifted = c()
+farther.resampled.p = c()
+farther.resampled.mean= c()
+
+for(i in 1:10000){
+  curr.sample = sample(data$farther, size = length(data$farther), replace = T)
+  farther.resampled.mean[i] = mean(curr.sample)
+  farther.resampled.t[i] = 5*farther.resampled.mean[i]/sd(data$farther)
+  
+}
+for(i in 1:10000){
+  farther.resamples.shifted[i] = farther.resampled.t[i] - mean(farther.resampled.t)
+}
+
+#CLOSER
+closer.resampled.t = c()
+closer.resamples.shifted = c()
+closer.resampled.p = c()
+closer.resampled.mean = c()
+
+for(i in 1:10000){
+  curr.sample = sample(data$closer, size = length(data$closer), replace = T)
+  closer.resampled.mean[i] = mean(curr.sample)
+  closer.resampled.t[i] = 5*closer.resampled.mean[i]/sd(data$closer)
+  
+}
+for(i in 1:10000){
+  closer.resamples.shifted[i] = closer.resampled.t[i] - mean(closer.resampled.t)
+}
+#DIFFERENCE
+dif.resampled.t = c()
+dif.resamples.shifted = c()
+dif.resampled.p = c()
+dif.resampled.mean = c()
+
+for(i in 1:10000){
+  curr.sample = sample(data$difference, size = length(data$difference), replace = T)
+  dif.resampled.mean[i] = mean(curr.sample)
+  dif.resampled.t[i] = 5*dif.resampled.mean[i]/sd(data$difference)
+  
+}
+for(i in 1:10000){
+  dif.resamples.shifted[i] = dif.resampled.t[i] - mean(dif.resampled.t)
+}
+@
   \item Compute the bootstrap $p$-value for each test using the shifted resamples. 
   How do these compare to the $t$-test $p$-values?
+  <<size = 'scriptsize'>>=
+#FARTHER
+for(i in 1:10000){
+  farther.resampled.p[i] = length(which(farther.resamples.shifted <= farther.resampled.t[i]))/length(farther.resamples.shifted)
+}
+mean(farther.resampled.p)
+
+#CLOSER
+for(i in 1:10000){
+  closer.resampled.p[i] = length(which(closer.resamples.shifted >= closer.resampled.t[i]))/length(closer.resamples.shifted)
+}
+mean(closer.resampled.p)
+
+#DIFFERENCE
+for(i in 1:10000){
+  dif.resampled.p[i] = length(which(dif.resamples.shifted >= abs(dif.resampled.t[i]) | dif.resamples.shifted <= -abs(dif.resampled.t[i])))/length(dif.resamples.shifted)
+}
+mean(dif.resampled.p)
+@
+\[p_f = p_c = p_d = 0\]
+
     \item What is the 5$^{th}$ percentile of the shifted resamples under the null hypothesis? 
   Note this value approximates $t_{0.05, n-1}$. Compare these values in each case.
+  <<size = 'scriptsize'>>=
+(farther.quantile = quantile(farther.resamples.shifted, 0.05))
+(closer.quantile = quantile(closer.resamples.shifted, 0.05))
+(dif.quantile = quantile(dif.resamples.shifted, 0.05))
+@
+\[t_f = -1.672723\]
+\[t_c = -1.612601\]
+\[t_d = -1.569826\]
+
   \item Compute the bootstrap confidence intervals using the resamples. How do these 
   compare to the $t$-test confidence intervals?
+  <<size = 'scriptsize'>>=
+quantile(farther.resampled.mean, c(0.025,0.975))
+quantile(closer.resampled.mean, c(0.025,0.975))
+quantile(dif.resampled.mean, c(0.025,0.975))
+@
+\[CI_f = (-0.2572578, -0.1554500 )\]
+\[CI_c = (0.1208817, 0.1918892 )\]
+\[CI_d = (0.2791661, 0.4410959 )\]
+
 \end{enumerate}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,11 +218,280 @@ randomization procedure.
 \begin{enumerate}
 \item Now, consider the zebra finch data. We do not know the generating distributions
 for the closer, further, and difference data, so perform the randomization procedure
+<<size='scriptsize'>>=
+#FARTHER
+farther.xbars = c()
+
+for(i in 1:10000){
+  curr.rand = data$farther*sample(c(-1,1),length(data$farther),replace = T)
+  farther.xbars[i] = mean(curr.rand)
+}
+#CLOSER
+closer.xbars = c()
+
+for(i in 1:10000){
+  curr.rand = data$closer*sample(c(-1,1),length(data$closer),replace = T)
+  closer.xbars[i] = mean(curr.rand)
+}
+#DIFFERENCE
+dif.xbars = c()
+
+for(i in 1:10000){
+  curr.rand = data$difference*sample(c(-1,1),length(data$difference),replace = T)
+  dif.xbars[i] = mean(curr.rand)
+}
+@
   \item Compute the randomization test $p$-value for each test.
+  <<size='scriptsize'>>=
+#FARTHER
+delta = abs(mean(data$farther))
+low = -delta
+high = delta
+mean(farther.xbars <= low) 
+#CLOSER
+delta = abs(mean(data$closer))
+low = -delta
+high = delta
+mean(closer.xbars >= high)
+#DIFFERENCE
+delta = abs(mean(data$difference))
+low = -delta
+high = delta
+mean(dif.xbars >= high) + mean(dif.xbars <= low)
+@
+  
+  \[p_f = p_c = p_d = 0\]
   \item Compute the randomization confidence interval by iterating over values of $\mu_0$.\\
   \textbf{Hint:} You can ``search" for the lower bound from $Q_1$ and subtracting by 0.0001, 
   and the upper bound using $Q_3$ and increasing by 0.0001. You will continue until you find 
   the first value for which the two-sided $p$-value is greater than or equal to 0.05.
+  <<size='scriptsize'>>=
+#FARTHER
+farther.xbars = c()
+mu0.iterate = 0.001
+mu0 = mean(data$farther)
+ci.data <- data$farther
+repeat{
+  curr.shifted.dat <- ci.data - mu0
+  for(i in 1:1000){
+    curr.rand = curr.shifted.dat*sample(c(-1,1),length(curr.shifted.dat),replace = T)
+    farther.xbars[i] = mean(curr.rand)
+  }
+  farther.xbars <- farther.xbars + mu0
+  
+  delta = abs(mean(data$farther) - mu0) 
+  low = mu0 - delta
+  high = mu0 + delta
+  p.val = mean(farther.xbars <= low) +
+    mean(farther.xbars >= high)
+  
+  if(p.val < 0.05){
+    break
+    mu0 <- mu0 + mu0.iterate
+  }else{
+    mu0 <- mu0 - mu0.iterate
+  }
+  
+}
+farther.rand.lbound = mu0
+
+
+mu0.iterate = 0.001
+mu0 = mean(data$farther)
+ci.data <- data$farther
+repeat{
+  curr.shifted.dat <- ci.data - mu0
+  for(i in 1:1000){
+    curr.rand = curr.shifted.dat*sample(c(-1,1),length(curr.shifted.dat),replace = T)
+    farther.xbars[i] = mean(curr.rand)
+  }
+  farther.xbars <- farther.xbars + mu0
+  
+  delta = abs(mean(data$farther) - mu0) 
+  low = mu0 - delta
+  high = mu0 + delta
+  p.val = mean(farther.xbars <= low) +
+    mean(farther.xbars >= high)
+  
+  if(p.val < 0.05){
+    mu0 = mu0 - mu0.iterate
+    break
+  }else{
+    mu0 <- mu0 + mu0.iterate
+  }
+}
+farther.rand.ubound = mu0
+
+farther.rand.lbound
+farther.rand.ubound
+
+#CLOSER
+mu0.iterate = 0.001
+mu0 = mean(data$farther)
+ci.data <- data$farther
+repeat{
+  curr.shifted.dat <- ci.data - mu0
+  for(i in 1:1000){
+    curr.rand = curr.shifted.dat*sample(c(-1,1),length(curr.shifted.dat),replace = T)
+    farther.xbars[i] = mean(curr.rand)
+  }
+  farther.xbars <- farther.xbars + mu0
+  
+  delta = abs(mean(data$farther) - mu0) 
+  low = mu0 - delta
+  high = mu0 + delta
+  p.val = mean(farther.xbars <= low) +
+    mean(farther.xbars >= high)
+  
+  if(p.val < 0.05){
+    mu0 = mu0 - mu0.iterate
+    break
+  }else{
+    mu0 <- mu0 + mu0.iterate
+  }
+}
+farther.rand.ubound = mu0
+
+farther.rand.lbound
+farther.rand.ubound
+
+
+
+#Closer###############################
+
+closer.xbars = c()
+
+for(i in 1:10000){
+  curr.rand = data$closer*sample(c(-1,1),length(data$closer),replace = T)
+  closer.xbars[i] = mean(curr.rand)
+}
+
+delta = abs(mean(data$closer))
+low = -delta
+high = delta
+mean(closer.xbars >= high) 
+
+closer.xbars = c()
+mu0.iterate = 0.001
+mu0 = mean(data$closer)
+ci.data <- data$closer
+repeat{
+  curr.shifted.dat <- ci.data - mu0
+  for(i in 1:1000){
+    curr.rand = curr.shifted.dat*sample(c(-1,1),length(curr.shifted.dat),replace = T)
+    closer.xbars[i] = mean(curr.rand)
+  }
+  closer.xbars <- closer.xbars + mu0
+  
+  delta = abs(mean(data$closer) - mu0) 
+  low = mu0 - delta
+  high = mu0 + delta
+  p.val = mean(closer.xbars <= low) +
+    mean(closer.xbars >= high)
+  
+  if(p.val < 0.05){
+    break
+    mu0 <- mu0 + mu0.iterate
+  }else{
+    mu0 <- mu0 - mu0.iterate
+  }
+  
+}
+closer.rand.lbound = mu0
+
+
+mu0.iterate = 0.001
+mu0 = mean(data$closer)
+ci.data <- data$closer
+repeat{
+  curr.shifted.dat <- ci.data - mu0
+  for(i in 1:1000){
+    curr.rand = curr.shifted.dat*sample(c(-1,1),length(curr.shifted.dat),replace = T)
+    closer.xbars[i] = mean(curr.rand)
+  }
+  closer.xbars <- closer.xbars + mu0
+  
+  delta = abs(mean(data$closer) - mu0) 
+  low = mu0 - delta
+  high = mu0 + delta
+  p.val = mean(closer.xbars <= low) +
+    mean(closer.xbars >= high)
+  
+  if(p.val < 0.05){
+    mu0 = mu0 - mu0.iterate
+    break
+  }else{
+    mu0 <- mu0 + mu0.iterate
+  }
+}
+closer.rand.ubound = mu0
+
+closer.rand.lbound
+closer.rand.ubound
+
+#DIFFERENCE
+dif.xbars = c()
+mu0.iterate = 0.001
+mu0 = mean(data$difference)
+ci.data <- data$difference
+repeat{
+  curr.shifted.dat <- ci.data - mu0
+  for(i in 1:1000){
+    curr.rand = curr.shifted.dat*sample(c(-1,1),length(curr.shifted.dat),replace = T)
+    dif.xbars[i] = mean(curr.rand)
+  }
+  dif.xbars <- dif.xbars + mu0
+  
+  delta = abs(mean(data$difference) - mu0) 
+  low = mu0 - delta
+  high = mu0 + delta
+  p.val = mean(dif.xbars <= low) +
+    mean(dif.xbars >= high)
+  
+  if(p.val < 0.05){
+    break
+    mu0 <- mu0 + mu0.iterate
+  }else{
+    mu0 <- mu0 - mu0.iterate
+  }
+  
+}
+dif.rand.lbound = mu0
+
+
+mu0.iterate = 0.001
+mu0 = mean(data$difference)
+ci.data <- data$difference
+repeat{
+  curr.shifted.dat <- ci.data - mu0
+  for(i in 1:1000){
+    curr.rand = curr.shifted.dat*sample(c(-1,1),length(curr.shifted.dat),replace = T)
+    dif.xbars[i] = mean(curr.rand)
+  }
+  dif.xbars <- dif.xbars + mu0
+  
+  delta = abs(mean(data$difference) - mu0) 
+  low = mu0 - delta
+  high = mu0 + delta
+  p.val = mean(dif.xbars <= low) +
+    mean(dif.xbars >= high)
+  
+  if(p.val < 0.05){
+    mu0 = mu0 - mu0.iterate
+    break
+  }else{
+    mu0 <- mu0 + mu0.iterate
+  }
+}
+dif.rand.ubound = mu0
+
+dif.rand.lbound
+dif.rand.ubound
+@
+
+\[CI_f = (-0.2577244, -0.1507244)\]
+\[CI_c = (0.1172231, 0.1942231)\]
+\[CI_d = (0.2719475, 0.4459475)\]
 \end{enumerate}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
