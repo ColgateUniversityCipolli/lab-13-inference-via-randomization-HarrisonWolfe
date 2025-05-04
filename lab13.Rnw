@@ -50,7 +50,7 @@ pdf = dnorm(tstat)
 @
 
 
-\[ Error = 520.8876\]
+\[ Error = -1.226006e-  13\]
 
 
   \item Compute the error for $t$ statistics from -10 to 10 and plot a line

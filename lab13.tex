@@ -103,7 +103,7 @@ for the the further observations.
 \end{knitrout}
 
 
-\[ Error = 520.8876\]
+\[ Error = -1.226006e-  13\]
 
 
   \item Compute the error for $t$ statistics from -10 to 10 and plot a line
@@ -225,7 +225,7 @@ sampling distribution of the $T$ statistic:
 \hlkwd{mean}\hldef{(farther.resampled.p)}
 \end{alltt}
 \begin{verbatim}
-## [1] 1e-08
+## [1] 0
 \end{verbatim}
 \begin{alltt}
 \hlcom{#CLOSER}
@@ -259,22 +259,22 @@ sampling distribution of the $T$ statistic:
 \hldef{(farther.quantile} \hlkwb{=} \hlkwd{quantile}\hldef{(farther.resamples.shifted,} \hlnum{0.05}\hldef{))}
 \end{alltt}
 \begin{verbatim}
-##        5% 
-## -1.690416
+##      5% 
+## -1.7118
 \end{verbatim}
 \begin{alltt}
 \hldef{(closer.quantile} \hlkwb{=} \hlkwd{quantile}\hldef{(closer.resamples.shifted,} \hlnum{0.05}\hldef{))}
 \end{alltt}
 \begin{verbatim}
-##        5% 
-## -1.616485
+##       5% 
+## -1.56891
 \end{verbatim}
 \begin{alltt}
 \hldef{(dif.quantile} \hlkwb{=} \hlkwd{quantile}\hldef{(dif.resamples.shifted,} \hlnum{0.05}\hldef{))}
 \end{alltt}
 \begin{verbatim}
 ##        5% 
-## -1.541321
+## -1.568147
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -291,21 +291,21 @@ sampling distribution of the $T$ statistic:
 \end{alltt}
 \begin{verbatim}
 ##       2.5%      97.5% 
-## -0.2548647 -0.1555279
+## -0.2566202 -0.1552488
 \end{verbatim}
 \begin{alltt}
 \hlkwd{quantile}\hldef{(closer.resampled.mean,} \hlkwd{c}\hldef{(}\hlnum{0.025}\hldef{,}\hlnum{0.975}\hldef{))}
 \end{alltt}
 \begin{verbatim}
 ##      2.5%     97.5% 
-## 0.1207366 0.1932368
+## 0.1209154 0.1926862
 \end{verbatim}
 \begin{alltt}
 \hlkwd{quantile}\hldef{(dif.resampled.mean,} \hlkwd{c}\hldef{(}\hlnum{0.025}\hldef{,}\hlnum{0.975}\hldef{))}
 \end{alltt}
 \begin{verbatim}
 ##      2.5%     97.5% 
-## 0.2836448 0.4441000
+## 0.2811266 0.4418409
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -454,13 +454,13 @@ for the closer, further, and difference data, so perform the randomization proce
 \hldef{farther.rand.lbound}
 \end{alltt}
 \begin{verbatim}
-## [1] -0.2547244
+## [1] -0.2557244
 \end{verbatim}
 \begin{alltt}
 \hldef{farther.rand.ubound}
 \end{alltt}
 \begin{verbatim}
-## [1] -0.1537244
+## [1] -0.1527244
 \end{verbatim}
 \begin{alltt}
 \hlcom{#CLOSER}
@@ -493,13 +493,13 @@ for the closer, further, and difference data, so perform the randomization proce
 \hldef{farther.rand.lbound}
 \end{alltt}
 \begin{verbatim}
-## [1] -0.2547244
+## [1] -0.2557244
 \end{verbatim}
 \begin{alltt}
 \hldef{farther.rand.ubound}
 \end{alltt}
 \begin{verbatim}
-## [1] -0.1477244
+## [1] -0.1517244
 \end{verbatim}
 \begin{alltt}
 \hlcom{#Closer###############################}
@@ -578,7 +578,7 @@ for the closer, further, and difference data, so perform the randomization proce
 \hldef{closer.rand.lbound}
 \end{alltt}
 \begin{verbatim}
-## [1] 0.1182231
+## [1] 0.1172231
 \end{verbatim}
 \begin{alltt}
 \hldef{closer.rand.ubound}
@@ -646,13 +646,13 @@ for the closer, further, and difference data, so perform the randomization proce
 \hldef{dif.rand.lbound}
 \end{alltt}
 \begin{verbatim}
-## [1] 0.2739475
+## [1] 0.2729475
 \end{verbatim}
 \begin{alltt}
 \hldef{dif.rand.ubound}
 \end{alltt}
 \begin{verbatim}
-## [1] 0.4429475
+## [1] 0.4419475
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
